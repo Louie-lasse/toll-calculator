@@ -1,5 +1,18 @@
 
-public interface Vehicle {
+public class Vehicle {
 
-  public String getType();
+  private final VehicleType type;
+
+  public Vehicle(VehicleType type) {
+    this.type = type;
+  }
+
+  public String getType() {
+    return type.getName();
+  }
+
+  public boolean isTollFree() {
+    return this.type.isTollFree();
+  }
+
 }
