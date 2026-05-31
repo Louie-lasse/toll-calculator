@@ -1,4 +1,9 @@
 
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -12,36 +17,35 @@ public class TollCalculator {
    * @return - the total toll fee for that day
    */
   public int getTollFee(Vehicle vehicle, Date... dates) {
-    Date intervalStart = dates[0];
-    int totalFee = 0;
+    if (dates.length == 0) {
+      return 0;
+    }
+    if (vehicle.isTollFree()) {
+      return 0;
+    }
+    LocalDateTime intervalStart = dates[0].toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    int intervalToll = 0;
+
+    int total = 0;
     for (Date date : dates) {
-      int nextFee = getTollFee(date, vehicle);
-      int tempFee = getTollFee(intervalStart, vehicle);
-
-      TimeUnit timeUnit = TimeUnit.MINUTES;
-      long diffInMillies = date.getTime() - intervalStart.getTime();
-      long minutes = timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS);
-
-      if (minutes > 60) {
-        totalFee += nextFee;
+      LocalDateTime ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+      if (Duration.between(ldt, intervalStart).compareTo(Duration.ofHours(1)) < 0) {
+        intervalToll = Math.max(intervalToll, getTollFee(ldt));
         continue;
       }
-      if (totalFee > 0)
-        totalFee -= tempFee;
-      if (nextFee >= tempFee)
-        tempFee = nextFee;
-      totalFee += tempFee;
+      intervalStart = ldt;
+      total += intervalToll;
+      intervalToll = getTollFee(ldt);
     }
-    return Math.min(totalFee, 60);
+    total += intervalToll;
+    return total;
   }
 
-  public int getTollFee(final Date date, Vehicle vehicle) {
-    if (vehicle.isTollFree() || isTollFreeDate(date))
+  public int getTollFee(final LocalDateTime ldt) {
+    if (isTollFreeDate(ldt))
       return 0;
-    Calendar calendar = GregorianCalendar.getInstance();
-    calendar.setTime(date);
-    int hour = calendar.get(Calendar.HOUR_OF_DAY);
-    int minute = calendar.get(Calendar.MINUTE);
+    int hour = ldt.getHour();
+    int minute = ldt.getMinute();
 
     if (hour == 6)
       return minute < 30 ? 8 : 13;
@@ -60,17 +64,14 @@ public class TollCalculator {
     return 0;
   }
 
-  private Boolean isTollFreeDate(Date date) {
-    Calendar calendar = GregorianCalendar.getInstance();
-    calendar.setTime(date);
-    int month = calendar.get(Calendar.MONTH);
-    int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-    int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-    if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
+  private Boolean isTollFreeDate(LocalDateTime ldt) {
+    DayOfWeek dayOfWeek = ldt.getDayOfWeek();
+    if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
       return true;
     }
-    return TollCalendar.getInstance().isTollFree(month, day);
+
+    MonthDay monthDay = MonthDay.from(ldt);
+    return TollCalendar.getInstance().isTollFree(monthDay);
     // TODO: verify that this should be classed as a bug and removed
     // int year = calendar.get(Calendar.YEAR);
     // if (year != 2013) {

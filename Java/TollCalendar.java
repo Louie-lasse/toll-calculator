@@ -37,8 +37,12 @@ public class TollCalendar {
         return instance;
     }
 
+    public boolean isTollFree(MonthDay monthDay) {
+        return dateSet.contains(monthDay);
+    }
+
     public boolean isTollFree(int month, int day){
-        return dateSet.contains(MonthDay.of(month + 1, day));
+        return isTollFree(MonthDay.of(month, day));
     }
 
     public Set<MonthDay> getDateSet(){
