@@ -65,23 +65,16 @@ public class TollCalculator {
     calendar.setTime(date);
     int month = calendar.get(Calendar.MONTH);
     int day = calendar.get(Calendar.DAY_OF_MONTH);
-    
+
     int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
     if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
       return true;
     }
+    return TollCalendar.getInstance().isTollFree(month, day);
     // TODO: verify that this should be classed as a bug and removed
     // int year = calendar.get(Calendar.YEAR);
     // if (year != 2013) {
-    //   return false;
+    // return false;
     // }
-    return (month == Calendar.JANUARY && day == 1 ||
-        month == Calendar.MARCH && (day == 28 || day == 29) ||
-        month == Calendar.APRIL && (day == 1 || day == 30) ||
-        month == Calendar.MAY && (day == 1 || day == 8 || day == 9) ||
-        month == Calendar.JUNE && (day == 5 || day == 6 || day == 21) ||
-        month == Calendar.JULY ||
-        month == Calendar.NOVEMBER && day == 1 ||
-        month == Calendar.DECEMBER && (day == 24 || day == 25 || day == 26 || day == 31));
   }
 }
