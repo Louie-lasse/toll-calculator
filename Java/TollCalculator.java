@@ -47,10 +47,5 @@ public class TollCalculator {
 
         MonthDay monthDay = MonthDay.from(ldt);
         return TollCalendar.getInstance().isTollFree(monthDay);
-        // TODO: verify that this should be classed as a bug and removed
-        // int year = calendar.get(Calendar.YEAR);
-        // if (year != 2013) {
-        // return false;
-        // }
     }
 }
