@@ -8,6 +8,12 @@ import java.util.*;
 
 public class TollCalculator {
 
+    private final TollingStrategy strategy;
+
+    public TollCalculator(){
+        strategy = new FirstPassStrategy();
+    }
+
     /**
      * Calculate the total toll fee for one day
      *
@@ -26,24 +32,11 @@ public class TollCalculator {
         for (Date date : dates) {
             dateTimes.add(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         }
-        LocalDateTime intervalStart = dateTimes.get(0);
-        if (isTollFreeDate(intervalStart)) {
+        if (isTollFreeDate(dateTimes.get(0))) {
             return 0;
         }
-        int intervalToll = 0;
-
-        int total = 0;
-        for (LocalDateTime ldt : dateTimes) {
-            if (Duration.between(ldt, intervalStart).compareTo(Duration.ofHours(1)) < 0) {
-                intervalToll = Math.max(intervalToll, vehicle.getTollFee(ldt));
-                continue;
-            }
-            intervalStart = ldt;
-            total += intervalToll;
-            intervalToll = vehicle.getTollFee(ldt);
-        }
-        total += intervalToll;
-        return total;
+        dateTimes.sort(Comparator.naturalOrder());
+        return Math.min(60, strategy.getTollFee(vehicle, dateTimes));
     }
 
     private Boolean isTollFreeDate(LocalDateTime ldt) {
