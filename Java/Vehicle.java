@@ -1,23 +1,56 @@
 import java.time.LocalDateTime;
 
-public class Vehicle {
+import schedules.Schedule;
+import schedules.StandardSchedule;
 
-    private final VehicleType type;
+public enum Vehicle {
 
-    public Vehicle(VehicleType type) {
-        this.type = type;
-    }
+    MOTORBIKE("Motorbike"),
+    TRACTOR("Tractor"),
+    EMERGENCY("Emergency"),
+    DIPLOMAT("Diplomat"),
+    FOREIGN("Foreign"),
+    CAR("Car", false),
+    MILITARY("Military");
 
-    public String getType() {
-        return type.getName();
-    }
+    private final String name;
+    private final Schedule schedule;
+    private boolean tollFree;
 
     public boolean isTollFree() {
-        return this.type.isTollFree();
+        return tollFree;
+    }
+
+    Vehicle(String name, boolean tollFree, Schedule schedule) {
+        this.name = name;
+        this.tollFree = tollFree;
+        this.schedule = schedule;
+    }
+
+    Vehicle(String name, boolean tollFree) {
+        Schedule schedule;
+        if (!tollFree) {
+            schedule = new StandardSchedule();
+        } else {
+            schedule = new Schedule() {
+                @Override
+                public int getTollFee(LocalDateTime ldt) {
+                    return 0;
+                }
+            };
+        }
+        this(name, tollFree, schedule);
+    }
+
+    Vehicle(String name) {
+        this(name, true);
     }
 
     public int getTollFee(LocalDateTime ldt) {
-        return this.type.getTollFee(ldt);
+        return schedule.getTollFee(ldt);
     }
 
+    public String getName() {
+        return name;
+    }
 }
